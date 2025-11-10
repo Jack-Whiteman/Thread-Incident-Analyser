@@ -2,8 +2,7 @@ import os
 import logging
 from datetime import datetime
 from slack_bolt import App
-from slack_bolt.adapter.socket_mode import SocketModeHandler
-from dotenv import load_dotenv
+from slack_bolt.adapter.flask import SlackRequestHandler
 from flask import Flask, request
 from dotenv import load_dotenv
 
@@ -11,11 +10,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Initialize the Slack app
-app = App(
+slack_app = App(
     token=os.environ.get("SLACK_BOT_TOKEN"),
     signing_secret=os.environ.get("SLACK_SIGNING_SECRET")
 )
 
+# Initialize Flask app for web server
 flask_app = Flask(__name__)
 handler = SlackRequestHandler(slack_app)
 
@@ -35,7 +35,9 @@ KEYWORDS = [
     'incident',
     'urgent',
     'rattle',
-    'deflation'
+    'deflation',
+    'detachment',
+    'faulty'
 ]
 
 def format_timestamp(ts):
