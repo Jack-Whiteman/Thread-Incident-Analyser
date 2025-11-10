@@ -4,6 +4,8 @@ from datetime import datetime
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from dotenv import load_dotenv
+from flask import Flask, request
+from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
@@ -13,6 +15,9 @@ app = App(
     token=os.environ.get("SLACK_BOT_TOKEN"),
     signing_secret=os.environ.get("SLACK_SIGNING_SECRET")
 )
+
+flask_app = Flask(__name__)
+handler = SlackRequestHandler(slack_app)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -49,7 +54,7 @@ def get_message_link(channel_id, message_ts, team_id):
     message_id = message_ts.replace('.', '')
     return f"https://slack.com/archives/{channel_id}/p{message_id}"
 
-@app.shortcut("extract_thread_issues")
+@slack_app.shortcut("extract_thread_issues")
 def handle_extract_issues(ack, shortcut, client, logger):
     """Handle the message shortcut to extract issues from thread"""
     # Acknowledge the shortcut request
@@ -114,9 +119,9 @@ def handle_extract_issues(ack, shortcut, client, logger):
             keywords_str = ", ".join([f'"{k}"' for k in msg["keywords"]])
             
             output_lines.extend([
-                f"*MESSAGE #{index}* -  ({timestamp})",
+                f"*MESSAGE #{index}* - <@{msg['user']}> ({timestamp})",
                 f"Keywords: {keywords_str}",
-                f"🔗 \n",
+                f"🔗 <{msg['link']}|View message>\n",
                 f'"{msg["text"]}"\n',
                 "━" * 50 + "\n"
             ])
@@ -140,12 +145,21 @@ def handle_extract_issues(ack, shortcut, client, logger):
             text=f"❌ Error analyzing thread: {str(e)}"
         )
 
-# Health check endpoint for hosting platforms
-@app.event("app_mention")
-def handle_app_mention(event, say):
-    say("👋 I'm running! Use the 'Extract Issues from Thread' shortcut on any message.")
+# Flask routes
+@flask_app.route("/slack/events", methods=["POST"])
+def slack_events():
+    """Handle Slack events"""
+    return handler.handle(request)
 
+@flask_app.route("/", methods=["GET"])
+def health_check():
+    """Health check endpoint"""
+    return "Slack Thread Analyzer is running! 🚀", 200
+
+# For local development
 if __name__ == "__main__":
-    # For local development
     port = int(os.environ.get("PORT", 3000))
-    app.start(port=port)
+    flask_app.run(host="0.0.0.0", port=port)
+
+# Expose the Flask app for gunicorn
+app = flask_app
