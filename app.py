@@ -126,8 +126,8 @@ def handle_extract_issues(ack, shortcut, client, logger):
         
         # Format the output
         output_lines = [
-            f"Found *{len(relevant_messages)}* message(s) with issue keywords:\n",
-            f":warning: Summary many not contain all incidents,messages below may not relate to an issue or may be part of the same incident, please review before creating Support Tickets\n",
+            f"\nFound *{len(relevant_messages)}* message(s) with issue keywords:\n",
+            f":warning: Summary many not contain all incidents, messages below may not relate to an issue or may be part of the same incident, please review before creating Support Tickets\n",
             "━" * 50 + "\n"
         ]
         
