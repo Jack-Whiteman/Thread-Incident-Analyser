@@ -136,7 +136,7 @@ def handle_extract_issues(ack, shortcut, client, logger):
             keywords_str = ", ".join([f'"{k}"' for k in msg["keywords"]])
             
             output_lines.extend([
-                f"* #{index}* - ({timestamp})",
+                f"*Message #{index}* - ({timestamp})",
                 f'"{msg["text"]}"\n',
                 f"Keywords: {keywords_str}\n",
                 f"<{msg['link']}|View message>\n",
