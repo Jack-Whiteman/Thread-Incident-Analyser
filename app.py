@@ -50,11 +50,18 @@ def find_matching_keywords(text):
     text_lower = text.lower()
     return [keyword for keyword in KEYWORDS if keyword.lower() in text_lower]
 
-def get_message_link(channel_id, message_ts, team_id):
-    """Generate a permalink to a Slack message"""
-    # Remove the dot from timestamp to create the message ID
-    message_id = message_ts.replace('.', '')
-    return f"https://slack.com/archives/{channel_id}/p{message_id}"
+def get_message_link(client, channel_id, message_ts):
+    """Generate a permalink to a Slack message using Slack API"""
+    try:
+        result = client.chat_getPermalink(
+            channel=channel_id,
+            message_ts=message_ts
+        )
+        return result["permalink"]
+    except Exception as e:
+        # Fallback to manual construction
+        message_id = message_ts.replace('.', '')
+        return f"https://sportabletech.slack.com/archives/{channel_id}/p{message_id}"
 
 @slack_app.shortcut("extract_thread_issues")
 def handle_extract_issues(ack, shortcut, client, logger):
@@ -91,7 +98,7 @@ def handle_extract_issues(ack, shortcut, client, logger):
             text = msg.get("text", "")
             matched_keywords = find_matching_keywords(text)
             if matched_keywords:
-                message_link = get_message_link(channel_id, msg.get("ts"), team_id)
+                message_link = get_message_link(client, channel_id, msg.get("ts"))
                 relevant_messages.append({
                     "text": text,
                     "user": msg.get("user", "Unknown"),
@@ -100,19 +107,28 @@ def handle_extract_issues(ack, shortcut, client, logger):
                     "link": message_link
                 })
         
-        # Build output message
+        #Build output message
         if not relevant_messages:
-            client.chat_postMessage(
+            # Update loading message to show no issues found
+            client.chat_update(
                 channel=channel_id,
-                thread_ts=thread_ts,
-                text="✅ No issues found! No messages contained the tracked keywords."
+                ts=loading_msg["ts"],
+                text="✅ Analysis complete - No issues found!"
+            )
+            # Delete after 5 seconds
+            import time
+            time.sleep(15)
+            client.chat_delete(
+                channel=channel_id,
+                ts=loading_msg["ts"]
             )
             return
         
         # Format the output
         output_lines = [
-            f"🎮 *Thread Analysis Results*",
+            f" *Thread Analysis Results*",
             f"Found *{len(relevant_messages)}* message(s) with issue keywords:\n",
+            f":warning: Messages below may not relate to an issue or be part of the same incident, please review before creating Support Tickets"
             "━" * 50 + "\n"
         ]
         
@@ -121,7 +137,7 @@ def handle_extract_issues(ack, shortcut, client, logger):
             keywords_str = ", ".join([f'"{k}"' for k in msg["keywords"]])
             
             output_lines.extend([
-                f"*MESSAGE #{index}* - <@{msg['user']}> ({timestamp})",
+                f"*MESSAGE #{index}* - <{msg['user']}> ({timestamp})",
                 f"Keywords: {keywords_str}",
                 f"🔗 <{msg['link']}|View message>\n",
                 f'"{msg["text"]}"\n',
@@ -135,6 +151,21 @@ def handle_extract_issues(ack, shortcut, client, logger):
             channel=channel_id,
             thread_ts=thread_ts,
             text=output_text
+        )
+        
+                # Update loading message to completion message
+        client.chat_update(
+            channel=channel_id,
+            ts=loading_msg["ts"],
+            text="✅ Analysis complete!"
+        )
+        
+        # Delete the completion message after 5 seconds
+        import time
+        time.sleep(5)
+        client.chat_delete(
+            channel=channel_id,
+            ts=loading_msg["ts"]
         )
         
         logger.info(f"Successfully analyzed thread with {len(relevant_messages)} relevant messages")
