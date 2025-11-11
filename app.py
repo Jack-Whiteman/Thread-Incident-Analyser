@@ -81,7 +81,7 @@ def handle_extract_issues(ack, shortcut, client, logger):
         loading_msg = client.chat_postMessage(
             channel=channel_id,
             thread_ts=thread_ts,
-            text="🔍 Analyzing thread for issues..."
+            text="🔍 Analyzing thread..."
         )
         
         # Fetch all replies in the thread
@@ -128,7 +128,7 @@ def handle_extract_issues(ack, shortcut, client, logger):
         output_lines = [
             f" *Thread Analysis Results*",
             f"Found *{len(relevant_messages)}* message(s) with issue keywords:\n",
-            f":warning: Messages below may not relate to an issue or be part of the same incident, please review before creating Support Tickets"
+            f":warning: Messages below may not relate to an issue or be part of the same incident, please review before creating Support Tickets",
             "━" * 50 + "\n"
         ]
         
