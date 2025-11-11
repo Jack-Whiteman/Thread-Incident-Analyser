@@ -126,9 +126,9 @@ def handle_extract_issues(ack, shortcut, client, logger):
         
         # Format the output
         output_lines = [
-            f" *Thread Analysis Results*",
+            f" \n*Thread Analysis Results*",
             f"Found *{len(relevant_messages)}* message(s) with issue keywords:\n",
-            f":warning: Messages below may not relate to an issue or be part of the same incident, please review before creating Support Tickets",
+            f":warning: Messages below may not relate to an issue or may be part of the same incident, please review before creating Support Tickets\n",
             "━" * 50 + "\n"
         ]
         
@@ -161,8 +161,7 @@ def handle_extract_issues(ack, shortcut, client, logger):
         )
         
         # Delete the completion message after 5 seconds
-        import time
-        time.sleep(5)
+        time.sleep(15)
         client.chat_delete(
             channel=channel_id,
             ts=loading_msg["ts"]
