@@ -126,7 +126,6 @@ def handle_extract_issues(ack, shortcut, client, logger):
         
         # Format the output
         output_lines = [
-            f" \n*Thread Analysis Results*",
             f"Found *{len(relevant_messages)}* message(s) with issue keywords:\n",
             f":warning: Messages below may not relate to an issue or may be part of the same incident, please review before creating Support Tickets\n",
             "━" * 50 + "\n"
@@ -137,10 +136,10 @@ def handle_extract_issues(ack, shortcut, client, logger):
             keywords_str = ", ".join([f'"{k}"' for k in msg["keywords"]])
             
             output_lines.extend([
-                f"*MESSAGE #{index}* - <@{msg['user']}> ({timestamp})",
-                f"Keywords: {keywords_str}",
-                f"🔗 <{msg['link']}|View message>\n",
+                f"*MESSAGE #{index}* - <@{msg['user']}> ({timestamp})\n",
+                f"Keywords: {keywords_str}\n",
                 f'"{msg["text"]}"\n',
+                f"🔗 <{msg['link']}|View message>\n",
                 "━" * 50 + "\n"
             ])
         
