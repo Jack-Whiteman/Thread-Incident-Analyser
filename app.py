@@ -1,5 +1,6 @@
 import os
 import logging
+import time
 from datetime import datetime
 from slack_bolt import App
 from slack_bolt.adapter.flask import SlackRequestHandler
@@ -76,11 +77,11 @@ def handle_extract_issues(ack, shortcut, client, logger):
         user_id = shortcut["user"]["id"]
         team_id = shortcut["team"]["id"]
         
-        # Send immediate acknowledgment
-        client.chat_postEphemeral(
+        # Post a loading message
+        loading_msg = client.chat_postMessage(
             channel=channel_id,
-            user=user_id,
-            text="🔍 Analyzing thread for issues... This may take a moment."
+            thread_ts=thread_ts,
+            text="🔍 Analyzing thread for issues..."
         )
         
         # Fetch all replies in the thread
@@ -116,7 +117,6 @@ def handle_extract_issues(ack, shortcut, client, logger):
                 text="✅ Analysis complete - No issues found!"
             )
             # Delete after 5 seconds
-            import time
             time.sleep(15)
             client.chat_delete(
                 channel=channel_id,
