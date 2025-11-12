@@ -128,7 +128,6 @@ def handle_extract_issues(ack, shortcut, client, logger):
         output_lines = [
             f"\nFound *{len(relevant_messages)}* message(s) with issue keywords:\n",
             f":warning: Summary many not contain all incidents, messages below may not relate to an issue or may be part of the same incident, please review before creating Support Tickets\n",
-            "━" * 50 + "\n"
         ]
         
         for index, msg in enumerate(relevant_messages, 1):
@@ -140,7 +139,7 @@ def handle_extract_issues(ack, shortcut, client, logger):
                 f'"{msg["text"]}"\n',
                 f"Keywords: {keywords_str}\n",
                 f"<{msg['link']}|View message>\n",
-                "━" * 30 + "\n"
+                "━" *20  + "\n"
             ])
         
         output_text = "\n".join(output_lines)
