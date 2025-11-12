@@ -140,7 +140,7 @@ def handle_extract_issues(ack, shortcut, client, logger):
                 f'"{msg["text"]}"\n',
                 f"Keywords: {keywords_str}\n",
                 f"<{msg['link']}|View message>\n",
-                "━" * 20 + "\n"
+                "━" * 40 + "\n"
             ])
         
         output_text = "\n".join(output_lines)
