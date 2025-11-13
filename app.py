@@ -38,7 +38,9 @@ KEYWORDS = [
     'rattle',
     'deflation',
     'detachment',
-    'faulty'
+    'faulty',
+    'incorrect',
+    'wrong'
 ]
 
 def format_timestamp(ts):
