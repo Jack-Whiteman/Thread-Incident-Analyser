@@ -139,11 +139,12 @@ def handle_extract_issues(ack, shortcut, client, logger):
             keywords_str = ", ".join([f'"{k}"' for k in msg["keywords"]])
             
             individual_message = (
-                f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-                f"*MESSAGE #{index}* - <@{msg['user']}> ({timestamp})\n"
+                f"━━━━━━━━━━━━━━━━━━━\n"
+                f"*MESSAGE #{index}* - ({timestamp})\n"
+                f'"{msg["text"]}"'
                 f"Keywords: {keywords_str}\n"
                 f"🔗 <{msg['link']}|View message>\n\n"
-                f'"{msg["text"]}"'
+
             )
             
             # Post individual message (MUST BE INSIDE THE LOOP!)
