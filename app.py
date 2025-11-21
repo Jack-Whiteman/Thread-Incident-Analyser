@@ -118,7 +118,7 @@ def handle_extract_issues(ack, shortcut, client, logger):
                 ts=loading_msg["ts"],
                 text="✅ Analysis complete - No issues found!"
             )
-            # Delete after 5 seconds
+            # Delete after 15 seconds
             time.sleep(15)
             client.chat_delete(
                 channel=channel_id,
@@ -126,42 +126,44 @@ def handle_extract_issues(ack, shortcut, client, logger):
             )
             return
         
-        # Format the output
-        output_lines = [
-            f"\nFound *{len(relevant_messages)}* message(s) with issue keywords:\n",
-            f":warning: Summary many not contain all incidents, messages below may not relate to an issue or may be part of the same incident, please review before creating Support Tickets\n",
-            "━" * 18 + "\n"
-        ]
+        # Post header message
+        client.chat_postMessage(
+            channel=channel_id,
+            thread_ts=thread_ts,
+            text=f"Found *{len(relevant_messages)}* message(s) with issue keywords:\n\n:warning: Summary may not contain all incidents, messages below may not relate to an issue or may be part of the same incident, please review before creating Support Tickets"
+        )
         
+        # Post each incident as a separate message
         for index, msg in enumerate(relevant_messages, 1):
             timestamp = format_timestamp(msg["ts"])
             keywords_str = ", ".join([f'"{k}"' for k in msg["keywords"]])
             
-            output_lines.extend([
-                f"*MESSAGE #{index}* - ({timestamp})\n",
-                f'"{msg["text"]}"\n',
-                f"Keywords: {keywords_str}\n",
-                f"<{msg['link']}|View message>\n",
-                "━" * 18  + "\n"
-            ])
+            individual_message = (
+                f"━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                f"*MESSAGE #{index}* - <@{msg['user']}> ({timestamp})\n"
+                f"Keywords: {keywords_str}\n"
+                f"🔗 <{msg['link']}|View message>\n\n"
+                f'"{msg["text"]}"'
+            )
+            
+            # Post individual message (MUST BE INSIDE THE LOOP!)
+            client.chat_postMessage(
+                channel=channel_id,
+                thread_ts=thread_ts,
+                text=individual_message
+            )
+            
+            # Small delay to avoid rate limits
+            time.sleep(0.5)
         
-        output_text = "\n".join(output_lines)
-        
-        # Post the summary to the thread
-        client.chat_postMessage(
-            channel=channel_id,
-            thread_ts=thread_ts,
-            text=output_text
-        )
-        
-                # Update loading message to completion message
+        # Update loading message to completion message
         client.chat_update(
             channel=channel_id,
             ts=loading_msg["ts"],
             text="✅ Analysis complete!"
         )
         
-        # Delete the completion message after 5 seconds
+        # Delete the completion message after 15 seconds
         time.sleep(15)
         client.chat_delete(
             channel=channel_id,
