@@ -140,14 +140,14 @@ def handle_extract_issues(ack, shortcut, client, logger):
             
             individual_message = (
                 f"━━━━━━━━━━━━━━━━━━━\n"
-                f"*MESSAGE #{index}* - ({timestamp})\n"
-                f'"{msg["text"]}"'
-                f"Keywords: {keywords_str}\n"
-                f"🔗 <{msg['link']}|View message>\n\n"
+                f"*MESSAGE #{index}* - ({timestamp})\n\n"
+                f'"{msg["text"]}\n\n"'
+                f"Keywords: {keywords_str}\n\n"
+                f"<{msg['link']}|View message>\n\n"
 
             )
             
-            # Post individual message (MUST BE INSIDE THE LOOP!)
+            # Post individual message
             client.chat_postMessage(
                 channel=channel_id,
                 thread_ts=thread_ts,
