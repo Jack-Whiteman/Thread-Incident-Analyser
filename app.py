@@ -110,7 +110,7 @@ def handle_extract_issues(ack, shortcut, client, logger):
                     "link": message_link
                 })
         
-        #Build output message
+        # Build output message
         if not relevant_messages:
             # Update loading message to show no issues found
             client.chat_update(
@@ -126,36 +126,33 @@ def handle_extract_issues(ack, shortcut, client, logger):
             )
             return
         
-        # Post header message
-        client.chat_postMessage(
-            channel=channel_id,
-            thread_ts=thread_ts,
-            text=f"Found *{len(relevant_messages)}* message(s) with issue keywords:\n\n:warning: Summary may not contain all incidents, messages below may not relate to an issue or may be part of the same incident, please review before creating Support Tickets"
+        # Build consolidated message with all incidents
+        summary_message = (
+            f"Found *{len(relevant_messages)}* message(s) with issue keywords:\n\n"
+            f":warning: Summary may not contain all incidents, messages below may not relate to an issue or may be part of the same incident, please review before creating Support Tickets\n\n"
         )
         
-        # Post each incident as a separate message
+        # Add each incident to the summary message
         for index, msg in enumerate(relevant_messages, 1):
             timestamp = format_timestamp(msg["ts"])
             keywords_str = ", ".join([f'"{k}"' for k in msg["keywords"]])
             
-            individual_message = (
+            summary_message += (
                 f"━━━━━━━━━━━━━━━━━━━\n"
                 f"*MESSAGE #{index}* - ({timestamp})\n\n"
                 f'"{msg["text"]}"\n\n'
                 f"Keywords: {keywords_str}\n\n"
                 f"<{msg['link']}|View message>\n\n"
-
             )
-            
-            # Post individual message
-            client.chat_postMessage(
-                channel=channel_id,
-                thread_ts=thread_ts,
-                text=individual_message
-            )
-            
-            # Small delay to avoid rate limits
-            time.sleep(0.5)
+        
+        # Post the summary message as a single message
+        client.chat_postMessage(
+            channel=channel_id,
+            thread_ts=thread_ts,
+            text=summary_message,
+            unfurl_links = False,
+            unfurl_media = False
+        )
         
         # Update loading message to completion message
         client.chat_update(
@@ -165,7 +162,7 @@ def handle_extract_issues(ack, shortcut, client, logger):
         )
         
         # Delete the completion message after 15 seconds
-        time.sleep(15)
+        time.sleep(30)
         client.chat_delete(
             channel=channel_id,
             ts=loading_msg["ts"]
